@@ -9,6 +9,6 @@
   "title": "HDfilme.tv",
   "icon": "hdfilmetv.png",
   "synopsis": "Plugin to watch German HDfilme.tv Series and Movies",
-  "description":"<p>HDfilme.tv Movian plugin allows the integration of <i>HDfilme.tv</i> streams into Movian. HDfilme.tv offers a broad variety of german movies and series in high definition.</p>",
+  "description":"<p>HDfilme.tv Movian plugin allows the integration of <a href="http://www.hdfilme.tv">HDfilme.tv</a> streams into Movian. <a href="http://www.hdfilme.tv">HDfilme.tv</a> offers a broad variety of german movies and series in high definition. <a href="http://www.hdfilme.tv">Visit the plugin website on github</a> for bug reports or feature requests.</p>",
   "homepage":"https://github.com/gotwig/movian-hdfilme-plugin"
 }
