@@ -1,24 +1,7 @@
 /**
  * Movian plugin to watch hdfilme.tv streams 
  *
- * Copyright (C) 2017 BuXXe
- *
- *     This file is part of hdfilme.tv Movian plugin.
- *
- *  hdfilme.tv Movian plugin is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  hdfilme.tv Movian plugin is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with hdfilme.tv Movian plugin.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Download from : https://github.com/BuXXe/movian-serienstream-plugin
+ * MIT LICENSE - Copyright Masteredu
  *
  */
 var html = require('showtime/html');
@@ -31,6 +14,12 @@ var seasonImages = {};
   var PLUGIN_PREFIX = "hdfilme.tv:"; 
 
   plugin.addURI(PLUGIN_PREFIX + ':SelectSeriesEpisode:(.*):(.*)', function(page, videoid, seasonnr) {
+
+	  page.model.contents = 'list';
+	  page.loading = true;
+
+	  bypassAntiBot();
+
 	    page.type = "directory";
 	    page.metadata.title = "Springen zu Folge";
 	    page.metadata.icon = Plugin.path + 'hdfilmetv.png';
@@ -38,8 +27,7 @@ var seasonImages = {};
 		  var res = showtime.textDialog("Nach welcher Folge (dieser Staffel) soll gesucht werden?", true,true);
 		  var noEntry = true;
 
-bypassAntiBot(page);
-
+page.loading = false;
 		  // check for user abort
 		  if(res.rejected)
 		   res = showtime.textDialog("Nach welcher Folge (dieser Staffel) soll gesucht werden?", true,true);
@@ -69,14 +57,18 @@ bypassAntiBot(page);
 
   // Series Handler: show series for given seasons link
   plugin.addURI(PLUGIN_PREFIX + ':SeriesSite:(.*):(.*):(.*)', function(page, videoid, episodeamount, seriesTitle, seasondescription) {
-	  	page.loading = true;
+	  		  page.loading = true;
+	  page.model.contents = 'list';
+
+	  bypassAntiBot();
+
+
 	  	page.type = 'directory';
 	  	page.metadata.icon = seasonImages[videoid]
 	  	page.metadata.title = seriesTitle;
 	  	var noEntry = true;
 
-bypassAntiBot(page);
-
+page.loading = false;
         page.appendItem(PLUGIN_PREFIX + ':SelectSeriesEpisode:' + videoid + ":" + seriesTitle,'item',{ title: "Springen zu Folge...",
         										description: "Geben Sie die Folgennummer ein um direkt zur Folge zu gelangen" });
 
@@ -105,13 +97,18 @@ bypassAntiBot(page);
 
   // Seasons Handler: show seasons
   plugin.addURI(PLUGIN_PREFIX + ':SeasonsSite:(.*)', function(page, SeriesName) {
-	  	page.loading = true;
+	  		  page.loading = true;
+	  page.model.contents = 'grid';
+
+	  bypassAntiBot();
+
 	  	page.type = 'directory';
 	  	page.metadata.icon = Plugin.path + 'hdfilmetv.png';
 
 		page.metadata.title = SeriesName;
-bypassAntiBot(page);
 
+
+page.loading = false;
 		  var BrowseResponse = ""; 
 
           BrowseResponse = showtime.httpReq("http://hdfilme.tv/movie-search?key=" + SeriesName.replace(/\s/g, "+") , {
@@ -148,7 +145,12 @@ bypassAntiBot(page);
 					episodelimit = episodelimit.substr(episodelimit.indexOf("/") + 2);
 
 			  		title = title.replace(SeriesName,"");
-			  		title = title.toLowerCase().replace("staffel", "Staffel");
+			  		title = title.toLowerCase();
+			  		title = title.replace("hd", "");
+			  		title = title.replace("HD", "");
+			  		title = title.replace("staffel 0", "staffel ")
+			  		title = title.replace("staffel", "Staffel");
+
 			  		page.appendItem(PLUGIN_PREFIX + ':SeriesSite:' + videoid + ":" + episodelimit + ":" + SeriesName + " - " + title,
 						    'video',
 						    { title: title,
@@ -169,11 +171,17 @@ bypassAntiBot(page);
   // Problem: The sorting takes too much time. But there is no faster way right now 
   // because the website only has genre sorted lists
   plugin.addURI(PLUGIN_PREFIX + ':BrowseSeries', function(page) {
+
+  	  page.model.contents = 'grid';
+	  page.loading = true;
+
+	  bypassAntiBot();
+
 	    page.type = "directory";
 	    page.metadata.title = "Beliebte Serien auf HDfilme.tv";
 	    page.metadata.icon = Plugin.path + 'hdfilmetv.png';
 
-		bypassAntiBot(page);
+		page.loading = false;
 
 		  var BrowseResponse = ""; 
 
@@ -198,7 +206,7 @@ bypassAntiBot(page);
 		  for(var k=0; k< entries.length; k++)
 		  {
 
-			  var ancor = entries[k].getElementByTagName("a")[0];
+			  
 			  var title = entries[k].getElementByClassName('title-product')[0].textContent;
 			  
 			  var entryimage = entries[k].getElementByClassName('img')[0].attributes.getNamedItem("src").value.replace("_thumb","");
@@ -263,13 +271,19 @@ parseInt(regex2.exec(titleid)[1]);
   });
 
   plugin.addURI(PLUGIN_PREFIX + ':BrowseMovies', function(page) {
+
+	  page.model.contents = 'grid';
+	  page.loading = true;
+
+	  bypassAntiBot();
+
 	  page.type="directory";
 	  page.metadata.icon = Plugin.path + 'hdfilmetv.png';
 
 		  page.metadata.title = "Beliebte Filme auf HDfilme.tv";
 		  var noEntry = true;
-		  
-		  bypassAntiBot(page);
+
+		  page.loading = false;
 
 		  var BrowseResponse = ""; 
 
@@ -290,7 +304,7 @@ parseInt(regex2.exec(titleid)[1]);
 		  for(var k=0; k< entries.length; k++)
 		  {
 
-			  var ancor = entries[k].getElementByTagName("a")[0];
+			  
 			  var title = entries[k].getElementByClassName('title-product')[0].textContent;
 			  
 			  var entryimage = entries[k].getElementByClassName('img')[0].attributes.getNamedItem("src").value.replace("_thumb","");
@@ -315,15 +329,17 @@ parseInt(regex2.exec(titleid)[1]);
 			  	noEntry=false;
 			  }
 		  }
-		  		  
+
 		  if(noEntry == true)
 		  		page.appendPassiveItem('video', '', { title: 'Keine Suchergebnisse', description: "Es konnte keine Serie oder Film gefunden werden. Womöglich ist der Inhalt offline oder nicht auf HDfilme.tv verfügbar." });
 		  
-		page.loading = false;
+		
   });
   
   //Search param indicates the search criteria: Artist, Album, Track
   plugin.addURI(PLUGIN_PREFIX+":Search:(.*)", function(page, resInput) {
+
+  	  page.model.contents = 'list';
 	  page.type="directory";
 	  page.metadata.icon = Plugin.path + 'hdfilmetv.png';
 	  
@@ -340,7 +356,6 @@ parseInt(regex2.exec(titleid)[1]);
 
 		  var dom = html.parse(BrowseResponse.toString());
 
-
 		  var entries = "";
 	          if (dom.root.getElementByClassName('products')[0]) {
 			entries =  dom.root.getElementByClassName('products')[0].getElementByTagName("li");
@@ -352,19 +367,26 @@ parseInt(regex2.exec(titleid)[1]);
 		  seasonImages = {};
 		  for(var k=0; k< entries.length; k++)
 		  {
-
-			  var ancor = entries[k].getElementByTagName("a")[0];
+			  
 			  var title = entries[k].getElementByClassName('title-product')[0].textContent;
+
 			  
 			  var entryimage = entries[k].getElementByClassName('img')[0].attributes.getNamedItem("src").value.replace("_thumb","");
-			  var description = dom.root.getElementByClassName('popover-content')[k].getElementByTagName("p")[0].textContent;
-
+			  
 			  var videoid = entries[k].getElementByClassName('box-product')[0].attributes.getNamedItem("data-popover").value;
 
 			  videoid = videoid.replace('movie-data-popover-',"");
 
+			  var description = dom.root.getElementById('movie-data-popover-'+ videoid).textContent.toString();
+			  description = description.split("Genre:")[0];
+
 			  // Serie
 			  if ( entries[k].getElementByClassName('episode')[0] ) {
+
+			  title = title.replace("Staffel", "staffel");
+			  title = title.replace("hd", "");
+			  title = title.replace("HD", "");
+
 			  	const myRegex = /.*(?= staffel \d+)/;
 
 			  	var match = myRegex.exec(title);
@@ -446,7 +468,7 @@ parseInt(regex2.exec(titleid)[1]);
 
   });
 
-  function bypassAntiBot(page){
+  function bypassAntiBot(){
 
 	var BrowseResponse = showtime.httpReq("http://hdfilme.tv/movie/getlink/3423432/1", {
 		            compression: true,
@@ -455,9 +477,6 @@ parseInt(regex2.exec(titleid)[1]);
 		        });
 
 		if (BrowseResponse.statuscode == 503){
-			page.flush();
-		  	page.loading = true;
-		  	page.appendPassiveItem('video', '', { title: 'Bitte kurz warten...', description: "Anti-Bot Dienste richten sich gegen DDoS Angriffe: Mehrere Computer greifen dabei gleichzeitig eine Webseite an. Dies kann sehr schnell zum Ausfall der Server führen." });
 
 		   var dom = html.parse(BrowseResponse.toString());
 
@@ -478,19 +497,10 @@ parseInt(regex2.exec(titleid)[1]);
 						    showtime.notify("Warten auf Umgehen des Antibot Schutz... " + (11-i).toString() +" Sekunden verbleiben",1);
 							showtime.sleep(1);
 					}
-					page.flush();
-					page.loading = false;
 
 		}
 	  }
 
-  function encode_utf8(s) {
-	  return encodeURI(s);
-	}
-
-  function decode_utf8(s) {
-	  return decodeURI(s);
-	}
 
   function getMovieURL(id, episode) { 
 
@@ -517,14 +527,21 @@ parseInt(regex2.exec(titleid)[1]);
   
   // Genre Search Handler
   plugin.addURI(PLUGIN_PREFIX+":GenreSearcher:(.*):(.*):(.*)", function(page, type, category, categoryTranslate) {
+
+  	  page.model.contents = 'grid';
+      page.loading = true;
+
+	  bypassAntiBot();
+
     page.type = "directory";
     page.metadata.icon = Plugin.path + 'hdfilmetv.png';
     page.metadata.title = categoryTranslate + "-" + type;
 
-	bypassAntiBot(page);
+	page.loading = false;
 
 	if (type == "Serien"){
-				  var BrowseResponse = ""; 
+
+		  var BrowseResponse = ""; 
 
           BrowseResponse = showtime.httpReq("http://hdfilme.tv/movie-series?cat="
           					+ category +
@@ -547,10 +564,12 @@ parseInt(regex2.exec(titleid)[1]);
 		  seasonImages = {};
 		  for(var k=0; k< entries.length; k++)
 		  {
-
-			  var ancor = entries[k].getElementByTagName("a")[0];
 			  var title = entries[k].getElementByClassName('title-product')[0].textContent;
-			  
+
+			  title = title.replace("Staffel", "staffel");
+			  title = title.replace("hd", "");
+			  title = title.replace("HD", "");
+
 			  var entryimage = entries[k].getElementByClassName('img')[0].attributes.getNamedItem("src").value.replace("_thumb","");
 			  var description = dom.root.getElementByClassName('popover-content')[k].getElementByTagName("p")[0].textContent;
 
@@ -633,8 +652,6 @@ parseInt(regex2.exec(titleid)[1]);
 
 		  for(var k=0; k< entries.length; k++)
 		  {
-
-			  var ancor = entries[k].getElementByTagName("a")[0];
 			  var title = entries[k].getElementByClassName('title-product')[0].textContent;
 			  
 			  var entryimage = entries[k].getElementByClassName('img')[0].attributes.getNamedItem("src").value.replace("_thumb","");
@@ -674,9 +691,18 @@ parseInt(regex2.exec(titleid)[1]);
 
   // Genre Handler
   plugin.addURI(PLUGIN_PREFIX+":GenresHandler:(.*)", function(page, type) {
+
+	  page.model.contents = 'grid';
+	  page.loading = true;
+
+	  bypassAntiBot();
+
     page.type = "directory";
     page.metadata.icon = Plugin.path + 'hdfilmetv.png';
     page.metadata.title = "Bitte " + type + "genre wählen";
+
+
+	page.loading = false;
 
     var imagePrefix = "http://hdfilme.tv/upload/public/";
 
@@ -692,7 +718,7 @@ parseInt(regex2.exec(titleid)[1]);
 									 "Fantasy", "Kriminal","Horror", "Familien",
 									 "Biografie" , "Romantik"];
 
-	bypassAntiBot(page);
+
 
 	for (var i=0; i < showableGenres.length;i++){
 		page.appendItem(PLUGIN_PREFIX + ":GenreSearcher:" + type + ":" + showableGenres[i] + ":" + showableGenresTranslation[i],
@@ -708,10 +734,15 @@ parseInt(regex2.exec(titleid)[1]);
   plugin.addURI(PLUGIN_PREFIX+"start", function(page) {
     page.type = "directory";
     page.metadata.icon = Plugin.path + 'hdfilmetv.png';
-    page.metadata.title = "HDfilme.tv Hauptmenü";
+    page.metadata.title = "Bitte Warten...";
 
-	
-	bypassAntiBot(page);
+	  page.loading = true;
+
+	  bypassAntiBot();
+
+	page.metadata.title = "Hauptmenü";
+
+    page.loading = false;
 
 	page.appendItem(PLUGIN_PREFIX + ":Search:", 'search', {
 	    title: 'Suchen Sie hier nach Ihrer Lieblingsserie oder Ihrem Lieblingsfilm'
